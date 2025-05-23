@@ -23,7 +23,7 @@ export function useAuth() {
     setError(null)
 
     try {
-      const response = await fetch("https://v0-box-rec-api-setup.m5dzpbqd.vercel.app/api/auth", {
+      const response = await fetch("/api/auth", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
