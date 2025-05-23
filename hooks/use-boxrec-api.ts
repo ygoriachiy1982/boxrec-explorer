@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-const API_BASE = "/api"
+const API_BASE = ""
 
 export function useBoxrecApi() {
   const [isLoading, setIsLoading] = useState(false)
