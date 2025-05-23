@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-const API_BASE = "https://v0-box-rec-api-setup.m5dzpbqd.vercel.app"
+const API_BASE = "/api"
 
 export function useBoxrecApi() {
   const [isLoading, setIsLoading] = useState(false)
