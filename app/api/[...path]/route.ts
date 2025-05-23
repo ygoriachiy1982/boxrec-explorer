@@ -6,67 +6,93 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
-  const path = params.path.join('/');
-  const searchParams = request.nextUrl.searchParams;
-  
-  const url = `${API_BASE}/api/${path}${
-    searchParams.toString() ? `?${searchParams.toString()}` : ''
-  }`;
+  try {
+    const path = params.path.join('/');
+    const searchParams = request.nextUrl.searchParams;
+    
+    const url = `${API_BASE}/api/${path}${
+      searchParams.toString() ? `?${searchParams.toString()}` : ''
+    }`;
 
-  const response = await fetch(url, {
-    headers: {
-      'Cookie': request.headers.get('cookie') || '',
-    },
-    credentials: 'include',
-  });
+    console.log(`Proxying GET request to: ${url}`);
 
-  const data = await response.json();
-  
-  // Forward cookies
-  const responseHeaders = new Headers();
-  response.headers.forEach((value, key) => {
-    if (key.toLowerCase() === 'set-cookie') {
-      responseHeaders.append(key, value);
-    }
-  });
+    const response = await fetch(url, {
+      headers: {
+        'Cookie': request.headers.get('cookie') || '',
+      },
+      credentials: 'include',
+    });
 
-  return NextResponse.json(data, {
-    status: response.status,
-    headers: responseHeaders,
-  });
+    const data = await response.json();
+    
+    // Forward cookies
+    const responseHeaders = new Headers();
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() === 'set-cookie') {
+        responseHeaders.append(key, value);
+      }
+    });
+
+    return NextResponse.json(data, {
+      status: response.status,
+      headers: responseHeaders,
+    });
+  } catch (error) {
+    console.error('Proxy error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch from API' },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
-  const path = params.path.join('/');
-  const body = await request.json();
-  
-  const url = `${API_BASE}/api/${path}`;
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Cookie': request.headers.get('cookie') || '',
-    },
-    body: JSON.stringify(body),
-    credentials: 'include',
-  });
-
-  const data = await response.json();
-  
-  // Forward cookies
-  const responseHeaders = new Headers();
-  response.headers.forEach((value, key) => {
-    if (key.toLowerCase() === 'set-cookie') {
-      responseHeaders.append(key, value);
+  try {
+    const path = params.path.join('/');
+    let body;
+    
+    try {
+      body = await request.json();
+    } catch (e) {
+      body = {};
     }
-  });
+    
+    const url = `${API_BASE}/api/${path}`;
+    
+    console.log(`Proxying POST request to: ${url}`);
 
-  return NextResponse.json(data, {
-    status: response.status,
-    headers: responseHeaders,
-  });
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': request.headers.get('cookie') || '',
+      },
+      body: JSON.stringify(body),
+      credentials: 'include',
+    });
+
+    const data = await response.json();
+    
+    // Forward cookies
+    const responseHeaders = new Headers();
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() === 'set-cookie') {
+        responseHeaders.append(key, value);
+      }
+    });
+
+    return NextResponse.json(data, {
+      status: response.status,
+      headers: responseHeaders,
+    });
+  } catch (error) {
+    console.error('Proxy error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch from API' },
+      { status: 500 }
+    );
+  }
 }
